@@ -2014,6 +2014,26 @@
                 }
             }
         },
+        "/api/get-filter-users": {
+            "get": {
+                "tags": [
+                    "User API"
+                ],
+                "description": "get filter users",
+                "operationId": "ApiController.GetFilterUsers",
+                "responses": {
+                    "200": {
+                        "description": "The Response object",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/object.User"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/get-group": {
             "get": {
                 "tags": [

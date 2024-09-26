@@ -72,6 +72,68 @@ func (c *ApiController) GetGlobalUsers() {
 	}
 }
 
+// GetFilterUsers
+// @Title GetFilterUsers
+// @Tag User API
+// @Description get global users
+// @Success 200 {array} object.User The Response object
+// @router /get-filter-users [get]
+func (c *ApiController) GetFilterUsers() {
+	limit := c.Input().Get("pageSize")
+	page := c.Input().Get("p")
+	sortField := c.Input().Get("sortField")
+	sortOrder := c.Input().Get("sortOrder")
+
+	var filterCriteria []*object.FilterCriteria
+
+	queryParams := c.Input()
+
+	for key, values := range queryParams {
+		if key == "pageSize" || key == "p" || key == "sortField" || key == "sortOrder" || len(values) == 0 {
+			continue
+		}
+		field := key
+		for _, value := range values {
+			filterCriteria = append(filterCriteria, &object.FilterCriteria{
+				Field: field,
+				Value: value,
+			})
+		}
+	}
+
+	if limit == "" || page == "" {
+		users, err := object.GetMaskedUsers(object.GetGlobalUsers())
+		if err != nil {
+			c.ResponseError(err.Error())
+			return
+		}
+
+		c.ResponseOk(users)
+	} else {
+		limit := util.ParseInt(limit)
+		count, err := object.GetGlobalUserCountFilterCriteria(filterCriteria)
+		if err != nil {
+			c.ResponseError(err.Error())
+			return
+		}
+
+		paginator := pagination.SetPaginator(c.Ctx, limit, count)
+		users, err := object.GetPaginationFilterCriteriaGlobalUsers(paginator.Offset(), limit, filterCriteria, sortField, sortOrder)
+		if err != nil {
+			c.ResponseError(err.Error())
+			return
+		}
+
+		users, err = object.GetMaskedUsers(users)
+		if err != nil {
+			c.ResponseError(err.Error())
+			return
+		}
+
+		c.ResponseOk(users, paginator.Nums())
+	}
+}
+
 // GetUsers
 // @Title GetUsers
 // @Tag User API

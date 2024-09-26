@@ -242,6 +242,11 @@ type FaceId struct {
 	FaceIdData []float64 `json:"faceIdData"`
 }
 
+type FilterCriteria struct {
+	Field string `json:"field"`
+	Value string `json:"value"`
+}
+
 func GetUserFieldStringValue(user *User, fieldName string) (bool, string, error) {
 	val := reflect.ValueOf(*user)
 	fieldValue := val.FieldByName(fieldName)
@@ -264,6 +269,11 @@ func GetUserFieldStringValue(user *User, fieldName string) (bool, string, error)
 
 func GetGlobalUserCount(field, value string) (int64, error) {
 	session := GetSession("", -1, -1, field, value, "", "")
+	return session.Count(&User{})
+}
+
+func GetGlobalUserCountFilterCriteria(filterCriteria []*FilterCriteria) (int64, error) {
+	session := GetSessionFilterCriteria("", -1, -1, filterCriteria, "", "")
 	return session.Count(&User{})
 }
 
@@ -294,6 +304,17 @@ func GetGlobalUsersWithFilter(cond builder.Cond) ([]*User, error) {
 func GetPaginationGlobalUsers(offset, limit int, field, value, sortField, sortOrder string) ([]*User, error) {
 	users := []*User{}
 	session := GetSessionForUser("", offset, limit, field, value, sortField, sortOrder)
+	err := session.Find(&users)
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func GetPaginationFilterCriteriaGlobalUsers(offset, limit int, filterCriteria []*FilterCriteria, sortField, sortOrder string) ([]*User, error) {
+	users := []*User{}
+	session := GetSessionForUserFilterCriteria("", offset, limit, filterCriteria, sortField, sortOrder)
 	err := session.Find(&users)
 	if err != nil {
 		return nil, err
